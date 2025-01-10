@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Request Form</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">API Request Form</h2>
+    <form id="apiRequestForm">
+        <div class="form-group">
+            <label for="symbol">Symbol:</label>
+            <input type="text" class="form-control" id="symbol" placeholder="Enter stock symbol" value="IBM">
+        </div>
+        <div class="form-group">
+            <label for="interval">Interval:</label>
+            <input type="text" class="form-control" id="interval" placeholder="Enter interval" value="5min">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <h2 class="text-center mt-5 mb-4">API Response</h2>
+    <table class="table table-bordered" id="responseTable">
+        <thead>
+            <tr>
+                <th>Information</th>
+                <th>Symbol</th>
+                <th>Last Refreshed</th>
+                <th>Interval</th>
+                <th>Output Size</th>
+                <th>Time Zone</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Meta Data will be inserted here -->
+        </tbody>
+    </table>
+
+    <h2 class="text-center mt-5 mb-4">Time Series (5min) Data</h2>
+    <table class="table table-bordered" id="timeSeriesTable">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Open</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Close</th>
+                <th>Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Time Series Data will be inserted here -->
+        </tbody>
+    </table>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#apiRequestForm').submit(function(e) {
+            e.preventDefault();
+            const symbol = $('#symbol').val();
+            const interval = $('#interval').val();
+            const apiKey = 'TQ1SKKRO7P40MFGV'; // replace with your actual API key
+
+            $.ajax({
+                url: `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&apikey=${apiKey}&interval=${interval}`,
+                method: 'GET',
+                success: function(response) {
+                    const metaData = response['Meta Data'];
+                    const timeSeries = response['Time Series (5min)'];
+                    
+                    // Insert Meta Data
+                    const metaRow = `
+                        <tr>
+                            <td>${metaData['1. Information']}</td>
+                            <td>${metaData['2. Symbol']}</td>
+                            <td>${metaData['3. Last Refreshed']}</td>
+                            <td>${metaData['4. Interval']}</td>
+                            <td>${metaData['5. Output Size']}</td>
+                            <td>${metaData['6. Time Zone']}</td>
+                        </tr>`;
+                    $('#responseTable tbody').html(metaRow);
+                    
+                    // Insert Time Series Data
+                    let timeSeriesRows = '';
+                    for (let timestamp in timeSeries) {
+                        const data = timeSeries[timestamp];
+                        const row = `
+                            <tr>
+                                <td>${timestamp}</td>
+                                <td>${data['1. open']}</td>
+                                <td>${data['2. high']}</td>
+                                <td>${data['3. low']}</td>
+                                <td>${data['4. close']}</td>
+                                <td>${data['5. volume']}</td>
+                            </tr>`;
+                        timeSeriesRows += row;
+                    }
+                    $('#timeSeriesTable tbody').html(timeSeriesRows);
+                },
+                error: function(error) {
+                    alert('Error fetching data. Please try again later.');
+                }
+            });
+        });
+    });
+</script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
